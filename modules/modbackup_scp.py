@@ -1,10 +1,7 @@
 from include import modbackup_module
 
 
-class test(modbackup_module.BackupModule):
-    def ttt(self):
+class module_scp(modbackup_module.BackupModule):
+    def test(self):
+        print ("module scp");
         return
-
-
-def testmet():
-    print ("test met")

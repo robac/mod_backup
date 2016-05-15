@@ -20,6 +20,7 @@ ARGUMENT_MAIL = '-m'
 
 SECTION_GENERAL = 'general'
 ITEM_ORDER = 'order'
+ITEM_MODULE = 'module'
 
 
 #GLOBAL VARIABLES SECTION
@@ -160,14 +161,57 @@ def set_backup_order():
 # ---END def make_backup_order()
 
 
+def get_module_name(name):
+    return "module_" + name
+# ---END def get_package_name(module)
+
+
+def get_module_filename(name):
+    return "modbackup_" + name
+# ---END def get_package_filename(module)
+
+
+def import_module(name):
+    global modules
+
+    module_name = get_module_filename(name)
+    try:
+        f, filename, description = imp.find_module(module_name)
+        module = imp.load_module(module_name, f, filename, description)
+        modules[name] = module
+
+        print(get_module_name(name))
+        print(module)
+
+        class_ = getattr(module, get_module_name(name))
+        inst = class_()
+        int.test()
+
+
+
+    except BaseException as e:
+        print(e.args)
+        die_with_message('Can\'t import module: %s !', name)
+
+# ---END def import_module(name)
+
+
+
 def load_modules():
     global config
+    global modules
 
     for key in config:
         if (key == SECTION_GENERAL):
             continue
-        if
-
+        elif (ITEM_MODULE not in config[key]):
+                die_with_message('Module not specified in section %s !', key)
+        else:
+            module = config[key][ITEM_MODULE].lower()
+            if (module in modules):
+                continue
+            else:
+                import_module(module)
 # ---END def load_modules()
 
 
