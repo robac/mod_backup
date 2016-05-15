@@ -1,8 +1,8 @@
 class BackupModule:
     def proccess_configuration(self):
-        raise NotImplementedError();
+        raise NotImplementedError()
         return
 
     def backup(self):
-        raise NotImplementedError();
+        raise NotImplementedError()
         return
