@@ -1,7 +1,10 @@
-import sys.path
-import sys.path.append('..\include')
-import var_backup_module
+from include import modbackup_module
 
 
-def test():
-    print ("ahoj")
+class test(modbackup_module.BackupModule):
+    def ttt(self):
+        return;
+
+
+def testmet():
+    print ("test met")

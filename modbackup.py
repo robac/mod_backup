@@ -4,20 +4,23 @@ import json;
 import os;
 import os.path;
 import pprint;
+import imp;
+from modules import modbackup_scp;
 
 try:
-    import syslog
-    SYSLOG = True
+    import syslog;
+    SYSLOG = True;
 except:
-    SYSLOG = False
+    SYSLOG = False;
 
-sys.path.append('modules')
+sys.path.append('modules');
 
 #CONSTANTS SECTION
-ARGUMENT_TEST = '-t'
-ARGUMENT_MAIL = '-m'
+ARGUMENT_TEST = '-t';
+ARGUMENT_MAIL = '-m';
 
-SECTION_GLOBAL = 'global';
+SECTION_GENERAL = 'general';
+ITEM_ORDER = 'order';
 
 
 #GLOBAL VARIABLES SECTION
@@ -30,48 +33,51 @@ arguments = {
 config = {
 }
 
+modules = {
+}
+
 
 #FUNCTIONS SECTION
 def log(*args):
     if (len(args) == 0):
-        return
+        return;
     elif (len(args) == 1):
-        msg = args[0]
+        msg = args[0];
     else:
-        msg = args[0] % args[1:]
+        msg = args[0] % args[1:];
     if (SYSLOG or arguments['test_mode']):
-        syslog.syslog(msg)
+        syslog.syslog(msg);
     else:
-        print(msg)
+        print(msg);
 # --END def log(msg):
 
 
 def die_with_message(*args):
-    log(*args)
+    log(*args);
     sys.exit();
-    return
+    return;
 # --END def exit_with_mail(msg)
 
 
 def check_arguments():
-    index = 1
+    index = 1;
     while (index < len(sys.argv)):
-        item = sys.argv[index]
+        item = sys.argv[index];
         if (item == ARGUMENT_TEST):
-            arguments['test_mode'] = True
+            arguments['test_mode'] = True;
         elif (item == ARGUMENT_MAIL):
             if (index+1 < len(sys.argv)):
-                index += 1
-                arguments['mail_address'] = sys.argv[index]
+                index += 1;
+                arguments['mail_address'] = sys.argv[index];
             else:
-                die_with_message("Missing argument (mail address)!")
+                die_with_message("Missing argument (mail address)!");
         else:
-            arguments['config_file'] = item
+            arguments['config_file'] = item;
 
-        index += 1
+        index += 1;
 
     if (arguments['config_file'] == ''):
-        arguments['config_file'] = create_main_config_file_path()
+        arguments['config_file'] = create_main_config_file_path();
 # --END def check_arguments()
 
 
@@ -82,7 +88,7 @@ def create_main_config_file_path():
 
 
 def create_sub_config_file_path(partial_path):
-    global arguments
+    global arguments;
     if (os.path.exists(partial_path)):
         return partial_path;
     else:
@@ -101,24 +107,24 @@ def load_config(path):
         die_with_message('Configuration file %s does not exists!', path);
     try:
         with open(path) as conf_file:
-            config = json.load(conf_file)
+            config = json.load(conf_file);
             #config.
     except:
         log(sys.exc_info()[0]);
         log(sys.exc_info()[1]);
-        die_with_message('Error proccessing config file %s!', arguments['config_file'])
+        die_with_message('Error proccessing config file %s!', arguments['config_file']);
 
-    return config
+    return config;
 # --END def load_config()
 
 
 def compose_config():
     global config;
     for section in config.keys():
-        if (section == SECTION_GLOBAL):
-            continue
+        if (section == SECTION_GENERAL):
+            continue;
         elif (isinstance(config[section], dict)):
-            continue
+            continue;
         elif (isinstance(config[section], str)):
             path = create_sub_config_file_path(config[section]);
             config[section] = load_config(path);
@@ -127,17 +133,70 @@ def compose_config():
 # --END def discover_config()
 
 
+def set_backup_order():
+    global config
+    order = ''
+    if ((SECTION_GENERAL in config) and (ITEM_ORDER in config[SECTION_GENERAL])):
+        order = config[SECTION_GENERAL][ITEM_ORDER];
+
+    #only list and string is allowed, string is splitted into s list
+    if (not isinstance(order, list)):
+        if (isinstance(order, str)):
+            order = order.split();
+        else:
+            die_with_message('Unknow order type: %s in General -> Order section!', type(order));
+
+    #check if every item in order has definition in backups
+    for item in order:
+        if (item not in config):
+            die_with_message('Unknown section: %s in General -> Order section!', item);
+
+    #if backup section isnn't mentioned in order it is appended to the end
+    for key in config:
+        if (key == SECTION_GENERAL):
+            continue;
+        elif(key not in order):
+            order.append(key);
+
+    config[SECTION_GENERAL][ITEM_ORDER] = order;
+# ---END def make_backup_order()
+
+
+def load_modules():
+    global config
+
+    for key in config:
+        if (key == SECTION_GENERAL):
+            continue;
+        if
+
+# ---END def load_modules()
+
+
+def process_config():
+    set_backup_order();
+    load_modules();
+
+# ---END def process_config()
+
+
 def main():
     global config;
     check_arguments();
     config = load_config(arguments['config_file']);
     compose_config();
+    process_config();
 # --END def main()
 
 #PROGRAM
-main()
-xx = __import__('var_backup_scp');
-xx.test()
+
+"""f, filename, description = imp.find_module('modbackup_scp')
+example_package = imp.load_module('modbackup_scp', f, filename, description)
+example_package.testmet() """
+
+main();
+
+
 
 
 
