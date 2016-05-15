@@ -180,15 +180,9 @@ def import_module(name):
         module = imp.load_module(module_name, f, filename, description)
         modules[name] = module
 
-        print(get_module_name(name))
-        print(module)
-
         class_ = getattr(module, get_module_name(name))
         inst = class_()
-        int.test()
-
-
-
+        inst.test();
     except BaseException as e:
         print(e.args)
         die_with_message('Can\'t import module: %s !', name)
