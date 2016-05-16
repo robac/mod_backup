@@ -6,7 +6,7 @@ import os.path
 import pprint
 import imp
 from include import BaseModule
-from include import consts
+from include.const import *
 
 try:
     import syslog
@@ -15,15 +15,6 @@ except:
     SYSLOG = False
 
 sys.path.append('modules')
-
-#CONSTANTS SECTION
-ARGUMENT_TEST = '-t'
-ARGUMENT_MAIL = '-m'
-
-SECTION_GENERAL = 'general'
-ITEM_ORDER = 'order'
-ITEM_MODULE = 'module'
-
 
 #GLOBAL VARIABLES SECTION
 arguments = {
