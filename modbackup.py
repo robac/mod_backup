@@ -5,6 +5,8 @@ import os
 import os.path
 import pprint
 import imp
+from include import BaseModule
+from include import consts
 
 try:
     import syslog
@@ -55,7 +57,7 @@ def log(*args):
 def die_with_message(*args):
     log(*args)
     sys.exit()
-    return;
+    return
 # --END def exit_with_mail(msg)
 
 
@@ -162,12 +164,12 @@ def set_backup_order():
 
 
 def get_module_name(name):
-    return "module_" + name
+    return name[0].upper() + name[1:] + 'Module'
 # ---END def get_package_name(module)
 
 
 def get_module_filename(name):
-    return "modbackup_" + name
+    return get_module_name(name)
 # ---END def get_package_filename(module)
 
 
@@ -175,20 +177,24 @@ def import_module(name):
     global modules
 
     module_name = get_module_filename(name)
+    modules_path = os.path.join(os.path.dirname(sys.argv[0]), 'modules')
     try:
-        f, filename, description = imp.find_module(module_name)
+        f, filename, description = imp.find_module(module_name, [modules_path])
         module = imp.load_module(module_name, f, filename, description)
-        modules[name] = module
-
-        class_ = getattr(module, get_module_name(name))
-        inst = class_()
-        inst.test();
-    except BaseException as e:
+        modules[name] = {}
+        modules[name]['module'] = module
+    except Exception as e:
         print(e.args)
         die_with_message('Can\'t import module: %s !', name)
 
-# ---END def import_module(name)
+    try:
+        modules[name]['class'] = getattr(module, get_module_name(name))
+    except Exception as e:
+        die_with_message('Can\'t create class: %s !', module_name)
 
+    if ( not issubclass(modules[name]['class'], BaseModule.BaseModule)):
+        die_with_message("Module %s is not derived from BaseModule.BaseModule!", module_name)
+# ---END def import_module(name)
 
 
 def load_modules():
@@ -212,8 +218,21 @@ def load_modules():
 def process_config():
     set_backup_order()
     load_modules()
-
 # ---END def process_config()
+
+
+def test_config():
+    return
+# ---END def test_config()
+
+
+def do_backup():
+    for item in config[SECTION_GENERAL][ITEM_ORDER]:
+        module_name = config[item][ITEM_MODULE];
+        inst = modules[module_name]['class'](config[item]);
+        inst.do_backup();
+# ---END def do_backup()
+
 
 
 def main():
@@ -222,21 +241,13 @@ def main():
     config = load_config(arguments['config_file'])
     compose_config()
     process_config()
+
+    if (arguments['test_mode']):
+        test_config()
+    else:
+        do_backup()
 # --END def main()
 
+
 #PROGRAM
-
-"""f, filename, description = imp.find_module('modbackup_scp')
-example_package = imp.load_module('modbackup_scp', f, filename, description)
-example_package.testmet() """
-
 main()
-
-
-
-
-
-
-
-
-
